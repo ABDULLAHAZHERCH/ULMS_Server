@@ -43,7 +43,13 @@ app.use(cookieParser()); // Cookie parser for request handling
 app.use(morgan("dev")); // Logging requests
 
 // Connect to the database
-await connectionToDB();
+(async () => {
+  try {
+    await connectionToDB();
+  } catch (error) {
+    console.error("Failed to connect to the database:", error);
+  }
+})();
 
 // Basic route to test the server
 app.use("/ping", (_req, res) => {
