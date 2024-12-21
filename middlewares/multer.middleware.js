@@ -2,33 +2,22 @@ import multer from "multer";
 import path from "path";
 
 /**
- * @upload - Middleware to handle file uploads using multer.
- * The configuration sets the file size limit, file storage location, and file filter for allowed file types.
+ * @upload - Middleware to handle file uploads using multer with memory storage.
+ * This configuration supports serverless environments like Vercel.
  */
 const upload = multer({
-  dest: "uploads/",
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 mb in size max limit
-  storage: multer.diskStorage({
-    destination: "uploads/",
-    filename: (_req, file, cb) => {
-      cb(null, file.originalname);
-    },
-  }),
+  storage: multer.memoryStorage(), // Store files in memory
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB size max limit
   fileFilter: (_req, file, cb) => {
-    let ext = path.extname(file.originalname);
+    const ext = path.extname(file.originalname).toLowerCase();
 
-    if (
-      ext !== ".jpg" &&
-      ext !== ".jpeg" &&
-      ext !== ".webp" &&
-      ext !== ".png" &&
-      ext !== ".mp4"
-    ) {
+    // Check for allowed file types
+    if (![".jpg", ".jpeg", ".webp", ".png", ".mp4"].includes(ext)) {
       cb(new Error(`Unsupported file type! ${ext}`), false);
       return;
     }
 
-    cb(null, true);
+    cb(null, true); // Accept the file
   },
 });
 
