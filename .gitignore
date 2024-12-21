@@ -1,5 +1,3 @@
 # Secret 
 .env
 node_modules
-server.js
-app.js

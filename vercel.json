@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
+    }
+  ],
+  "env": {
+    "CLOUDINARY_CLOUD_NAME": "@cloudinary-cloud-name",
+    "CLOUDINARY_API_KEY": "@cloudinary-api-key",
+    "CLOUDINARY_API_SECRET": "@cloudinary-api-secret",
+    "CLOUDINARY_SECURE": "@cloudinary-secure",
+    "DB_URI": "@db-uri",
+    "RAZORPAY_KEY_ID": "@razorpay-key-id",
+    "RAZORPAY_SECRET": "@razorpay-secret"
+  }
+}
