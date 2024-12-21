@@ -75,3 +75,10 @@ app.use(errorMiddleware);
 export default (req, res) => {
   app(req, res); // Pass request and response to Express app
 };
+
+cloudinary.v2.uploader.upload(file.path, (error, result) => {
+  if (error) {
+    return res.status(500).json({ message: "File upload failed", error });
+  }
+  res.json({ message: "File uploaded successfully", result });
+});
