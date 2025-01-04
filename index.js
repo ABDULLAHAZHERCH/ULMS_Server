@@ -1,8 +1,8 @@
 import cloudinary from "cloudinary";
 // import Razorpay from 'razorpay';
 
-import connectionToDB from "../config/dbConnection.js";
-import app from "../app.js";
+import connectionToDB from "./config/dbConnection.js";
+import app from "./app.js";
 
 const PORT = process.env.PORT;
 
@@ -22,6 +22,6 @@ try {
   console.log(err);
 }
 
-module.exports = (req, res) => {
+export default (req, res) => {
   app(req, res); // Pass request and response to Express app
 };
