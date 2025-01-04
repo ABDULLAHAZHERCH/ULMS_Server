@@ -32,10 +32,8 @@ app.use(cookieParser());
 
 app.use(morgan("dev"));
 
-app.use("/", (_req, res) => {
-  res.status(200).json({
-    message: "Welcome to the Learning Management System API!",
-  });
+app.get("/", (req, res) => {
+  res.send("Welcome to the ULMS API");
 });
 
 app.use("/ping", function (_req, res) {
