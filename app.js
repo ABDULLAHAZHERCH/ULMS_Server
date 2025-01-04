@@ -32,10 +32,6 @@ app.use(cookieParser());
 
 app.use(morgan("dev"));
 
-app.get("/", (req, res) => {
-  res.send("Welcome to the ULMS API");
-});
-
 app.use("/ping", function (_req, res) {
   res.send("Pong");
 });
