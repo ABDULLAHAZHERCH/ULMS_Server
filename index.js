@@ -23,5 +23,5 @@ try {
 }
 
 export default (req, res) => {
-  app(req, res); // Pass request and response to Express app
+  app(req, res);
 };
