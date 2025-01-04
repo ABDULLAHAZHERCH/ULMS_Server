@@ -41,7 +41,7 @@ app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1", miscRoutes);
 app.all("*", (_req, res) => {
-  res.status(404).send("OOPS!!  404 page not found ");
+  res.status(404).send("ULMS API");
 });
 app.use(errorMiddlware);
 
