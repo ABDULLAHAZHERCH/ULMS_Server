@@ -22,6 +22,7 @@ cloudinary.v2.config({
 //     key_id: process.env.RAZORPAY_KEY_ID,
 //     key_secret: process.env.RAZORPAY_SECRET,
 // })
+
 app.listen(PORT, async () => {
   await connectionToDB();
   console.log(`App is running at  http:localhost:${PORT} `);

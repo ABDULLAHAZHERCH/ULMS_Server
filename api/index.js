@@ -23,6 +23,8 @@ cloudinary.v2.config({
   secure: process.env.CLOUDINARY_SECURE,
 });
 
+
+
 // Initialize Express app
 const app = express();
 
@@ -31,7 +33,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const corsOptions = {
-  origin: ["https://ulms-client.vercel.app"],
+  origin: "https://ulms-client.vercel.app",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   preflightContinue: false,
   optionsSuccessStatus: 204,

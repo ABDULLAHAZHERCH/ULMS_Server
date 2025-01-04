@@ -87,7 +87,7 @@ const authorizedRoles =
   (...roles) =>
   async (req, res, next) => {
     const currentUserRoles = req.user.roles;
-    if (!roles.includes(currentUserRoles)) {
+    if (!roles === "ADMIN") {
       return next(
         new AppError("You do not have permission to access this route", 403)
       );
