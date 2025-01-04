@@ -1,7 +1,7 @@
 import cloudinary from "cloudinary";
 // import Razorpay from 'razorpay';
 
-import connectionToDB from "./config/dbConnection.js";
+import connectionToDB from "../config/dbConnection.js";
 import app from "../app.js";
 
 /**
