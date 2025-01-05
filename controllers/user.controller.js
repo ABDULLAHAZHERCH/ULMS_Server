@@ -16,72 +16,89 @@ const cookieOptions = {
 /**
  * @REGISTER - Registers a new user
  */
-export const register=asyncHandler(async(req,res,next)=>{
-    const {fullName, email, password}= req.body;
-
-    if(!fullName|| !email|| !password){
-        return next(new AppError('All fileds are  required ', 400));
-    }
-
-    const userExists = await User.findOne({email});
-    if(userExists){
-        return next(new AppError('Email already exists  ', 409));
-    }
-    const user = await User.create({
-        fullName,
-        email,
-        password,
-        avatar:{
-            public_id:email,
-            secure_url:'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg',
+export const register = asyncHandler(async (req, res, next) => {
+    try {
+        // Check if file exists in request
+        if (!req.file) {
+          return next(new AppError('Avatar image is required', 400));
         }
-         
-    });
-
-    if(!user){
-        return next(
-            new AppError('User registration failed please try again ', 400)
-        );
-    }
-
-    if(req.file){
     
-        try {
-            const result =await cloudinary.v2.uploader.upload(req.file.path,{
-                folder:'lms',
-                width:250,
-                height:250,
-                gravity:'faces',
-                crop:'fill'
-                
-            });
-            if(result){
-                user.avatar.public_id=result.public_id;
-                user.avatar.secure_url=result.secure_url;
-                fs.rm(`uploads/${req.file.filename}`)
-            }
-            
-        } catch (e) {
-            return next(
-                new AppError( e ||'File not uploaded , please try again ', 500)
-            )
+        const { fullName, email, password } = req.body;
+    
+        if (!fullName || !email || !password) {
+          return next(new AppError('All fields are required', 400));
         }
-    }
-
-    await user.save();
-
-    const token = await user.generateJWTToken()
-
-    user.password= undefined;
-
-    res.cookie('token', token, { ...cookieOptions, sameSite: 'None' });
-
-    res.status(201).json({
-        success:true,
-        message:'User registered sucessfully',
-        user,
+    
+        // Check file size
+        if (req.file.size > 50 * 1024 * 1024) {
+          return next(new AppError('File size too large. Maximum size is 50MB', 400));
+        }
+    
+        // Create user first with default avatar
+        const user = await User.create({
+          fullName,
+          email,
+          password,
+          avatar: {
+            public_id: email,
+            secure_url: 'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
+          }
+        });
+    
+        if (!user) {
+          return next(new AppError('User registration failed, please try again', 400));
+        }
+    
+        // Upload to Cloudinary using the buffer
+        const result = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.v2.uploader.upload_stream(
+            {
+              folder: 'lms',
+              width: 250,
+              height: 250,
+              gravity: 'faces',
+              crop: 'fill',
+            },
+            (error, result) => {
+              if (error) {
+                console.error('Cloudinary upload error:', error);
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          );
+    
+          // Write the buffer to the upload stream
+          uploadStream.end(req.file.buffer);
+        });
+    
+        // Update user with Cloudinary response
+        user.avatar = {
+          public_id: result.public_id,
+          secure_url: result.secure_url
+        };
+    
+        await user.save();
+    
+        // Generate JWT token
+        const token = await user.generateJWTToken();
+        user.password = undefined;
+    
+        res.cookie('token', token, cookieOptions);
+    
+        res.status(201).json({
+          success: true,
+          message: 'User registered successfully',
+          user
+        });
+    
+      } catch (error) {
+        console.error('Registration error:', error);
+        return next(new AppError(error.message || 'Registration failed', 500));
+      }
     });
-});
+  
 
 /**
  * @LOGIN - Logs in an existing user
@@ -290,28 +307,51 @@ export const updateUser=asyncHandler(async(req, res,next)=>{
     }
 
     if(req.file){
-
-        await cloudinary.v2.uploader.destroy(user.avatar.public_id);
-
-        try{
-            const result =await cloudinary.v2.uploader.upload(req.file.path,{
-                folder:'lms',
-                width:250,
-                height:250,
-                gravity:'faces',
-                crop:'fill'
-                
-            });
-            if(result){
-                user.avatar.public_id=result.public_id;
-                user.avatar.secure_url=result.secure_url;
-                fs.rm(`uploads/${req.file.filename}`)
+        // deleting the previous avatar
+        if (user.avatar.public_id){
+            try {    
+                await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+            } catch (error) {
+                console.error('Cloudinary delete error:', error);
+                //continue updating the avatar even if the deletion fails
             }
-            
-        } catch (e) {
+        }
+
+        // Upload to Cloudinary using the buffer
+        try {
+            const result = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.v2.uploader.upload_stream(
+                    {
+                        folder: 'lms',
+                        width: 250,
+                        height: 250,
+                        gravity: 'faces',
+                        crop: 'fill',
+                    },
+                    (error, uploadResult) => {
+                        if (error) {
+                            console.error('Cloudinary upload error:', error);
+                        } else {
+                            resolve(uploadResult);
+                        }
+                    }
+                );
+
+                // Write the buffer to the upload stream
+                uploadStream.end(req.file.buffer);
+            }); 
+
+            // Update user with Cloudinary response
+            if (result) {
+                user.avatar = {
+                    public_id: result.public_id,
+                    secure_url: result.secure_url
+                };
+            }
+        } catch (error) {
             return next(
-                new AppError( e ||'File not uploaded , please try again ', 500)
-            )
+                new AppError('Avatar upload failed, please try again', 500)
+            );
         }
     }
     await user.save();
